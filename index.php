@@ -6,8 +6,10 @@ require_once 'SetAttributeCommand.php';
 require_once 'VisitorInterface.php';
 require_once 'CountVisitor.php';
 require_once 'DepthIterator.php';
+require_once 'DocumentGenerator.php';
+require_once 'HTMLDocumentGenerator.php';
+require_once 'PDFDocumentGenerator.php';
 
-// Створення списку та елементів
 $list = new LightElementNode('ul', 'block', 'pair');
 $list->addClass('list');
 
@@ -25,7 +27,6 @@ $list->appendChild($item1);
 $list->appendChild($item2);
 $list->appendChild($item3);
 
-// Обробники подій
 $list->addHook('onCreated', function ($node) {
     echo "✔️ Список був створений.<br>";
 });
@@ -57,7 +58,6 @@ $counts = $visitor->getResults();
 
 $walker = new DepthIterator($list);
 
-// Стейт для елементів
 class ElementState {
     private $state;
     public function __construct($state = "inactive") {
@@ -73,6 +73,19 @@ class ElementState {
 
 $itemState = new ElementState();
 
+if (isset($_GET['generate'])) {
+    $format = $_GET['generate'];
+
+    if ($format == 'pdf') {
+        echo "Opening PDF document...\n";
+        $pdfGenerator = new PDFDocumentGenerator();
+        $pdfGenerator->saveDocument();  
+    } elseif ($format == 'html') {
+        echo "Opening HTML document...\n";
+        $htmlGenerator = new HTMLDocumentGenerator();
+        $htmlGenerator->saveDocument();  
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -119,6 +132,9 @@ $itemState = new ElementState();
     <h2>📝 Результат виконання шаблонного методу:</h2>
     <p>Поточний стан елемента: <span id="state"><?= $itemState->getState() ?></span></p>
 
+    <h2>Генерація документів:</h2>
+    <a href="?generate=pdf"><button>Генерувати PDF</button></a>
+    <a href="?generate=html"><button>Генерувати HTML</button></a>
 </div>
 
 <script>

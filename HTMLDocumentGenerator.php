@@ -1,5 +1,4 @@
 <?php
-
 class HTMLDocumentGenerator extends DocumentGenerator
 {
     protected function openDocument(): void
@@ -20,6 +19,17 @@ class HTMLDocumentGenerator extends DocumentGenerator
     protected function closeDocument(): void
     {
         echo "Closing HTML document...\n";
+    }
+
+    public function saveDocument(): void
+    {
+        $filePath = 'generated_documents/output.html';
+
+        $htmlContent = '<h1>Generated HTML Document</h1>';
+
+        file_put_contents($filePath, $htmlContent);
+        
+        echo "HTML document saved to {$filePath}\n";
     }
 }
 ?>
