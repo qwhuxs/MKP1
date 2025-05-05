@@ -3,6 +3,8 @@ require_once 'LightHTML.php';
 require_once 'AddClassCommand.php';
 require_once 'RemoveClassCommand.php';
 require_once 'SetAttributeCommand.php';
+require_once 'VisitorInterface.php';
+require_once 'CountVisitor.php';
 
 $list = new LightElementNode('ul', 'block', 'pair');
 $list->addClass('list');
@@ -45,6 +47,10 @@ $command2->execute();
 
 $command3 = new RemoveClassCommand($item3, 'highlight');
 $command3->execute();
+
+$visitor = new CountVisitor();
+$visitor->visit($list);
+$counts = $visitor->getResults();
 ?>
 
 <!DOCTYPE html>
@@ -52,15 +58,22 @@ $command3->execute();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LightHTML – Команда</title>
+    <title>LightHTML – Команда + Відвідувач</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="container">
-    <h1>🧩 LightHTML – Шаблон "Команда"</h1>
+    <h1>🧩 LightHTML – Команда + Відвідувач</h1>
 
     <h2>Фактичний HTML:</h2>
     <?= $list->outerHTML() ?>
+
+    <h2>🔍 Підрахунок елементів:</h2>
+    <ul>
+        <?php foreach ($counts as $tag => $count): ?>
+            <li><code>&lt;<?= $tag ?>&gt;</code>: <?= $count ?></li>
+        <?php endforeach; ?>
+    </ul>
 
     <h2>➕ Додати пункт:</h2>
     <button onclick="addListItem()">Додати пункт</button>
