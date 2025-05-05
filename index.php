@@ -71,21 +71,45 @@ $walker = new DepthIterator($list);
     <h2>Фактичний HTML:</h2>
     <?= $list->outerHTML() ?>
 
-    <h2>🔍 Підрахунок елементів:</h2>
+    <h2>🔍 Підрахунок елементів (Visitor):</h2>
     <ul>
         <?php foreach ($counts as $tag => $count): ?>
             <li><code>&lt;<?= $tag ?>&gt;</code>: <?= $count ?></li>
         <?php endforeach; ?>
     </ul>
 
-    <h2>🌿 DOM у глибину:</h2>
-    <ul>
-        <?php foreach ($walker as $node): ?>
-            <?php if ($node instanceof LightElementNode): ?>
-                <li><code><?= $node->getTagName() ?></code></li>
-            <?php endif; ?>
+    <h2>🌿 DOM у глибину (Ітератор):</h2>
+    <ul style="font-family: monospace;">
+        <?php
+        function getNodeLevel($node) {
+            $level = 0;
+            while ($node = $node->getParent()) {
+                $level++;
+            }
+            return $level;
+        }
+
+        foreach ($walker as $node):
+            $level = getNodeLevel($node);
+            $indent = str_repeat("&nbsp;&nbsp;&nbsp;", $level);
+        ?>
+            <li>
+                <?= $indent ?>
+                <?php if ($node instanceof LightElementNode): ?>
+                    📦 <code>&lt;<?= $node->getTagName() ?>&gt;</code>
+                <?php elseif ($node instanceof LightTextNode): ?>
+                    📝 <em>"<?= htmlspecialchars($node->getText()) ?>"</em>
+                <?php endif; ?>
+            </li>
         <?php endforeach; ?>
     </ul>
+
+    <h2>📚 Тест getText() і getParent():</h2>
+    <p>
+        Текст в <code>item1</code>: <strong><?= $item1->getChildren()[0]->getText() ?></strong><br>
+        Батько цього текстового вузла: 
+        <code>&lt;<?= $item1->getChildren()[0]->getParent()->getTagName() ?>&gt;</code>
+    </p>
 
     <h2>➕ Додати пункт:</h2>
     <button onclick="addListItem()">Додати пункт</button>

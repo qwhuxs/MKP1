@@ -2,8 +2,20 @@
 
 abstract class LightNode
 {
+    protected ?LightElementNode $parent = null;
+
     abstract public function outerHTML(): string;
     abstract public function innerHTML(): string;
+
+    public function setParent(?LightElementNode $parent): void
+    {
+        $this->parent = $parent;
+    }
+
+    public function getParent(): ?LightElementNode
+    {
+        return $this->parent;
+    }
 
     public function onCreated(): void {}
     public function onInserted(): void {}
@@ -21,6 +33,11 @@ class LightTextNode extends LightNode
     {
         $this->text = htmlspecialchars($text);
         $this->onTextRendered();
+    }
+
+    public function getText(): string
+    {
+        return $this->text;
     }
 
     public function innerHTML(): string
@@ -98,13 +115,17 @@ class LightElementNode extends LightNode
 
     public function addClass(string $className): void
     {
-        $this->cssClasses[] = $className;
-        $this->onClassListApplied();
+        if (!in_array($className, $this->cssClasses)) {
+            $this->cssClasses[] = $className;
+            $this->onClassListApplied();
+        }
     }
 
     public function removeClass(string $className): void
     {
-        $this->cssClasses = array_filter($this->cssClasses, fn($cls) => $cls !== $className);
+        $this->cssClasses = array_values(
+            array_filter($this->cssClasses, fn($cls) => $cls !== $className)
+        );
     }
 
     public function setAttribute(string $name, string $value): void
@@ -115,7 +136,8 @@ class LightElementNode extends LightNode
     public function appendChild(LightNode $node): void
     {
         $this->children[] = $node;
-        $this->onInserted();
+        $node->setParent($this);
+        $node->onInserted();
     }
 
     public function removeChild(LightNode $node): void
@@ -124,6 +146,7 @@ class LightElementNode extends LightNode
             if ($child === $node) {
                 unset($this->children[$i]);
                 $this->children = array_values($this->children);
+                $node->setParent(null);
                 $node->onRemoved();
                 break;
             }
