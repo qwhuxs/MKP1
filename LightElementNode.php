@@ -1,41 +1,5 @@
 <?php
 
-abstract class LightNode
-{
-    abstract public function outerHTML(): string;
-    abstract public function innerHTML(): string;
-
-    public function onCreated(): void {}
-    public function onInserted(): void {}
-    public function onRemoved(): void {}
-    public function onStylesApplied(): void {}
-    public function onClassListApplied(): void {}
-    public function onTextRendered(): void {}
-}
-
-class LightTextNode extends LightNode
-{
-    private string $text;
-
-    public function __construct(string $text)
-    {
-        $this->text = htmlspecialchars($text);
-        $this->onTextRendered();
-    }
-
-    public function innerHTML(): string
-    {
-        return $this->text;
-    }
-
-    public function outerHTML(): string
-    {
-        return $this->text;
-    }
-
-    public function onTextRendered(): void {}
-}
-
 class LightElementNode extends LightNode
 {
     private string $tagName;

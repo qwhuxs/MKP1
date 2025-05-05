@@ -5,6 +5,7 @@ require_once 'RemoveClassCommand.php';
 require_once 'SetAttributeCommand.php';
 require_once 'VisitorInterface.php';
 require_once 'CountVisitor.php';
+require_once 'DepthIterator.php';
 
 $list = new LightElementNode('ul', 'block', 'pair');
 $list->addClass('list');
@@ -51,6 +52,8 @@ $command3->execute();
 $visitor = new CountVisitor();
 $visitor->visit($list);
 $counts = $visitor->getResults();
+
+$walker = new DepthIterator($list);
 ?>
 
 <!DOCTYPE html>
@@ -58,12 +61,12 @@ $counts = $visitor->getResults();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LightHTML – Команда + Відвідувач</title>
+    <title>LightHTML – Ітератор</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="container">
-    <h1>🧩 LightHTML – Команда + Відвідувач</h1>
+    <h1>🧩 LightHTML – Шаблон "Ітератор"</h1>
 
     <h2>Фактичний HTML:</h2>
     <?= $list->outerHTML() ?>
@@ -72,6 +75,15 @@ $counts = $visitor->getResults();
     <ul>
         <?php foreach ($counts as $tag => $count): ?>
             <li><code>&lt;<?= $tag ?>&gt;</code>: <?= $count ?></li>
+        <?php endforeach; ?>
+    </ul>
+
+    <h2>🌿 DOM у глибину:</h2>
+    <ul>
+        <?php foreach ($walker as $node): ?>
+            <?php if ($node instanceof LightElementNode): ?>
+                <li><code><?= $node->getTagName() ?></code></li>
+            <?php endif; ?>
         <?php endforeach; ?>
     </ul>
 
