@@ -5,7 +5,6 @@ require_once 'RemoveClassCommand.php';
 require_once 'SetAttributeCommand.php';
 require_once 'VisitorInterface.php';
 require_once 'CountVisitor.php';
-require_once 'DepthIterator.php';
 
 $list = new LightElementNode('ul', 'block', 'pair');
 $list->addClass('list');
@@ -24,7 +23,6 @@ $list->appendChild($item1);
 $list->appendChild($item2);
 $list->appendChild($item3);
 
-// Обробники подій
 $list->addHook('onCreated', function ($node) {
     echo "✔️ Список був створений.<br>";
 });
@@ -56,7 +54,6 @@ $counts = $visitor->getResults();
 
 $walker = new DepthIterator($list);
 
-// Стейт для елементів
 class ElementState {
     private $state;
     public function __construct($state = "inactive") {
@@ -72,6 +69,9 @@ class ElementState {
 
 $itemState = new ElementState();
 
+$breadthIterator = new BreadthIterator($list);  
+$depthIterator = new DepthIterator($list);     
+
 ?>
 
 <!DOCTYPE html>
@@ -79,31 +79,78 @@ $itemState = new ElementState();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LightHTML – Шаблон "Стейт"</title>
+    <title>LightHTML </title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="container">
-    <h1>🧩 LightHTML – Шаблон "Стейт"</h1>
+    <h1>🧩 LightHTML – Метод"</h1>
 
     <h2>Фактичний HTML:</h2>
     <?= $list->outerHTML() ?>
 
-    <h2>🔍 Підрахунок елементів:</h2>
+    <h2>🔍 Підрахунок елементів (Visitor):</h2>
     <ul>
         <?php foreach ($counts as $tag => $count): ?>
             <li><code>&lt;<?= $tag ?>&gt;</code>: <?= $count ?></li>
         <?php endforeach; ?>
     </ul>
 
-    <h2>🌿 DOM у глибину:</h2>
-    <ul>
-        <?php foreach ($walker as $node): ?>
-            <?php if ($node instanceof LightElementNode): ?>
-                <li><code><?= $node->getTagName() ?></code></li>
-            <?php endif; ?>
+    <h2>🌿 DOM у ширину (BreadthIterator):</h2>
+    <ul style="font-family: monospace;">
+        <?php
+        function getNodeLevel($node) {
+            $level = 0;
+            while ($node = $node->getParent()) {
+                $level++;
+            }
+            return $level;
+        }
+
+        foreach ($breadthIterator as $node):
+            $level = getNodeLevel($node);
+            $indent = str_repeat("&nbsp;&nbsp;&nbsp;", $level);
+        ?>
+            <li>
+                <?= $indent ?>
+                <?php if ($node instanceof LightElementNode): ?>
+                    📦 <code>&lt;<?= $node->getTagName() ?>&gt;</code>
+                <?php elseif ($node instanceof LightTextNode): ?>
+                    📝 <em>"<?= htmlspecialchars($node->getText()) ?>"</em>
+                <?php endif; ?>
+            </li>
         <?php endforeach; ?>
     </ul>
+
+    <h2>🌿 DOM в глибину (DepthIterator):</h2>
+<ul style="font-family: monospace;">
+    <?php
+    $depthIterator->rewind(); 
+    while ($depthIterator->valid()):
+        $node = $depthIterator->current();
+        $level = getNodeLevel($node);
+        $indent = str_repeat("&nbsp;&nbsp;&nbsp;", $level);
+    ?>
+        <li>
+            <?= $indent ?>
+            <?php if ($node instanceof LightElementNode): ?>
+                📦 <code>&lt;<?= $node->getTagName() ?>&gt;</code>
+            <?php elseif ($node instanceof LightTextNode): ?>
+                📝 <em>"<?= htmlspecialchars($node->getText()) ?>"</em>
+            <?php endif; ?>
+        </li>
+    <?php
+        $depthIterator->next();
+    endwhile;
+    ?>
+</ul>
+
+    <h2>📚 Тест getText() і getParent():</h2>
+    <p>
+        Текст в <code>item1</code>: <strong><?= $item1->getChildren()[0]->getText() ?></strong><br>
+        Батько цього текстового вузла: 
+        <code>&lt;<?= $item1->getChildren()[0]->getParent()->getTagName() ?>&gt;</code>
+    </p>
 
     <h2>➕ Додати пункт:</h2>
     <button onclick="addListItem()">Додати пункт</button>
