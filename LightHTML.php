@@ -2,8 +2,20 @@
 
 abstract class LightNode
 {
+    protected ?LightElementNode $parent = null;
+
     abstract public function outerHTML(): string;
     abstract public function innerHTML(): string;
+
+    public function setParent(?LightElementNode $parent): void
+    {
+        $this->parent = $parent;
+    }
+
+    public function getParent(): ?LightElementNode
+    {
+        return $this->parent;
+    }
 
     public function onCreated(): void {}
     public function onInserted(): void {}
@@ -21,6 +33,11 @@ class LightTextNode extends LightNode
     {
         $this->text = htmlspecialchars($text);
         $this->onTextRendered();
+    }
+
+    public function getText(): string
+    {
+        return $this->text;
     }
 
     public function innerHTML(): string
@@ -98,13 +115,17 @@ class LightElementNode extends LightNode
 
     public function addClass(string $className): void
     {
-        $this->cssClasses[] = $className;
-        $this->onClassListApplied();
+        if (!in_array($className, $this->cssClasses)) {
+            $this->cssClasses[] = $className;
+            $this->onClassListApplied();
+        }
     }
 
     public function removeClass(string $className): void
     {
-        $this->cssClasses = array_filter($this->cssClasses, fn($cls) => $cls !== $className);
+        $this->cssClasses = array_values(
+            array_filter($this->cssClasses, fn($cls) => $cls !== $className)
+        );
     }
 
     public function setAttribute(string $name, string $value): void
@@ -115,7 +136,8 @@ class LightElementNode extends LightNode
     public function appendChild(LightNode $node): void
     {
         $this->children[] = $node;
-        $this->onInserted();
+        $node->setParent($this);
+        $node->onInserted();
     }
 
     public function removeChild(LightNode $node): void
@@ -124,6 +146,7 @@ class LightElementNode extends LightNode
             if ($child === $node) {
                 unset($this->children[$i]);
                 $this->children = array_values($this->children);
+                $node->setParent(null);
                 $node->onRemoved();
                 break;
             }
@@ -176,4 +199,91 @@ class LightElementNode extends LightNode
         return "<{$this->tagName}{$attrStr}>{$this->innerHTML()}</{$this->tagName}>";
     }
 }
-?>
+
+class BreadthIterator implements Iterator
+{
+    private array $queue = [];
+    private int $index = 0;
+
+    public function __construct(LightNode $root)
+    {
+        $this->queue[] = $root;
+    }
+
+    public function current(): mixed
+    {
+        return $this->queue[$this->index];
+    }
+
+    public function next(): void
+    {
+        $node = $this->queue[$this->index++];
+
+        if ($node instanceof LightElementNode) {
+            foreach ($node->getChildren() as $child) {
+                $this->queue[] = $child;
+            }
+        }
+    }
+
+    public function key(): mixed
+    {
+        return $this->index;
+    }
+
+    public function valid(): bool
+    {
+        return isset($this->queue[$this->index]);
+    }
+
+    public function rewind(): void
+    {
+        $this->index = 0;
+    }
+}
+
+class DepthIterator implements Iterator
+{
+    private array $stack = [];
+    private mixed $current = null;
+
+    public function __construct(LightNode $root)
+    {
+        $this->stack[] = $root;
+    }
+
+    public function current(): mixed
+    {
+        return $this->current;
+    }
+
+    public function next(): void
+    {
+        $node = array_pop($this->stack);
+        $this->current = $node;
+
+        if ($node instanceof LightElementNode) {
+            $children = $node->getChildren();
+            for ($i = count($children) - 1; $i >= 0; $i--) {
+                $this->stack[] = $children[$i];
+            }
+        }
+    }
+
+    public function key(): mixed
+    {
+        return null;
+    }
+
+    public function valid(): bool
+    {
+        return !empty($this->stack);
+    }
+
+    public function rewind(): void
+    {
+        if (!empty($this->stack)) {
+            $this->next();
+        }
+    }
+}
