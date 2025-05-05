@@ -5,6 +5,10 @@ require_once 'RemoveClassCommand.php';
 require_once 'SetAttributeCommand.php';
 require_once 'VisitorInterface.php';
 require_once 'CountVisitor.php';
+require_once 'DepthIterator.php';
+require_once 'DocumentGenerator.php';
+require_once 'HTMLDocumentGenerator.php';
+require_once 'PDFDocumentGenerator.php';
 
 $list = new LightElementNode('ul', 'block', 'pair');
 $list->addClass('list');
@@ -68,6 +72,21 @@ class ElementState {
 }
 
 $itemState = new ElementState();
+
+
+if (isset($_GET['generate'])) {
+    $format = $_GET['generate'];
+
+    if ($format == 'pdf') {
+        echo "Opening PDF document...\n";
+        $pdfGenerator = new PDFDocumentGenerator();
+        $pdfGenerator->saveDocument();  
+    } elseif ($format == 'html') {
+        echo "Opening HTML document...\n";
+        $htmlGenerator = new HTMLDocumentGenerator();
+        $htmlGenerator->saveDocument();  
+    }
+}
 
 $breadthIterator = new BreadthIterator($list);  
 $depthIterator = new DepthIterator($list);     
@@ -159,9 +178,15 @@ $depthIterator = new DepthIterator($list);
     <a href="?remove=1"><button>Видалити другий пункт</button></a>
 
     <h2>🔄 Змінити стан елемента:</h2>
-    <p>Текущий стан: <span id="state"><?= $itemState->getState() ?></span></p>
+    <p>Поточний стан: <span id="state"><?= $itemState->getState() ?></span></p>
     <button onclick="changeState()">Перемкнути стан</button>
 
+    <h2>📝 Результат виконання шаблонного методу:</h2>
+    <p>Поточний стан елемента: <span id="state"><?= $itemState->getState() ?></span></p>
+
+    <h2>Генерація документів:</h2>
+    <a href="?generate=pdf"><button>Генерувати PDF</button></a>
+    <a href="?generate=html"><button>Генерувати HTML</button></a>
 </div>
 
 <script>
