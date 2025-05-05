@@ -52,8 +52,26 @@ $visitor = new CountVisitor();
 $visitor->visit($list);
 $counts = $visitor->getResults();
 
+$walker = new DepthIterator($list);
+
+class ElementState {
+    private $state;
+    public function __construct($state = "inactive") {
+        $this->state = $state;
+    }
+    public function setState($state) {
+        $this->state = $state;
+    }
+    public function getState() {
+        return $this->state;
+    }
+}
+
+$itemState = new ElementState();
+
 $breadthIterator = new BreadthIterator($list);  
 $depthIterator = new DepthIterator($list);     
+
 ?>
 
 <!DOCTYPE html>
@@ -61,12 +79,12 @@ $depthIterator = new DepthIterator($list);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LightHTML – Ітератори</title>
+    <title>LightHTML </title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="container">
-    <h1>🧩 LightHTML – Шаблон "Ітератори"</h1>
+    <h1>🧩 LightHTML – Метод"</h1>
 
     <h2>Фактичний HTML:</h2>
     <?= $list->outerHTML() ?>
@@ -139,6 +157,11 @@ $depthIterator = new DepthIterator($list);
 
     <h2>➖ Видалити елемент:</h2>
     <a href="?remove=1"><button>Видалити другий пункт</button></a>
+
+    <h2>🔄 Змінити стан елемента:</h2>
+    <p>Текущий стан: <span id="state"><?= $itemState->getState() ?></span></p>
+    <button onclick="changeState()">Перемкнути стан</button>
+
 </div>
 
 <script>
@@ -148,6 +171,17 @@ $depthIterator = new DepthIterator($list);
         const li = document.createElement('li');
         li.textContent = `Новий пункт ${counter++}`;
         ul.appendChild(li);
+    }
+
+    function changeState() {
+        const stateSpan = document.getElementById('state');
+        if (stateSpan.textContent === "inactive") {
+            stateSpan.textContent = "active";
+            stateSpan.style.color = "green";
+        } else {
+            stateSpan.textContent = "inactive";
+            stateSpan.style.color = "red";
+        }
     }
 </script>
 </body>
