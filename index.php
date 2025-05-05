@@ -80,12 +80,12 @@ $itemState = new ElementState();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LightHTML – Шаблон "Стейт"</title>
+    <title>LightHTML – Шаблон "Шаблонний метод"</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="container">
-    <h1>🧩 LightHTML – Шаблон "Стейт"</h1>
+    <h1>🧩 LightHTML – Шаблон "Шаблонний метод"</h1>
 
     <h2>Фактичний HTML:</h2>
     <?= $list->outerHTML() ?>
@@ -113,8 +113,11 @@ $itemState = new ElementState();
     <a href="?remove=1"><button>Видалити другий пункт</button></a>
 
     <h2>🔄 Змінити стан елемента:</h2>
-    <p>Текущий стан: <span id="state"><?= $itemState->getState() ?></span></p>
+    <p>Поточний стан: <span id="state"><?= $itemState->getState() ?></span></p>
     <button onclick="changeState()">Перемкнути стан</button>
+
+    <h2>📝 Результат виконання шаблонного методу:</h2>
+    <p>Поточний стан елемента: <span id="state"><?= $itemState->getState() ?></span></p>
 
 </div>
 
