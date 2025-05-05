@@ -7,7 +7,6 @@ require_once 'VisitorInterface.php';
 require_once 'CountVisitor.php';
 require_once 'DepthIterator.php';
 
-// Створення списку та елементів
 $list = new LightElementNode('ul', 'block', 'pair');
 $list->addClass('list');
 
