@@ -5,7 +5,6 @@ require_once 'RemoveClassCommand.php';
 require_once 'SetAttributeCommand.php';
 require_once 'VisitorInterface.php';
 require_once 'CountVisitor.php';
-require_once 'DepthIterator.php';
 
 $list = new LightElementNode('ul', 'block', 'pair');
 $list->addClass('list');
@@ -53,7 +52,8 @@ $visitor = new CountVisitor();
 $visitor->visit($list);
 $counts = $visitor->getResults();
 
-$walker = new DepthIterator($list);
+$breadthIterator = new BreadthIterator($list);  
+$depthIterator = new DepthIterator($list);     
 ?>
 
 <!DOCTYPE html>
@@ -61,12 +61,12 @@ $walker = new DepthIterator($list);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LightHTML – Ітератор</title>
+    <title>LightHTML – Ітератори</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="container">
-    <h1>🧩 LightHTML – Шаблон "Ітератор"</h1>
+    <h1>🧩 LightHTML – Шаблон "Ітератори"</h1>
 
     <h2>Фактичний HTML:</h2>
     <?= $list->outerHTML() ?>
@@ -78,7 +78,7 @@ $walker = new DepthIterator($list);
         <?php endforeach; ?>
     </ul>
 
-    <h2>🌿 DOM у глибину (Ітератор):</h2>
+    <h2>🌿 DOM у ширину (BreadthIterator):</h2>
     <ul style="font-family: monospace;">
         <?php
         function getNodeLevel($node) {
@@ -89,7 +89,7 @@ $walker = new DepthIterator($list);
             return $level;
         }
 
-        foreach ($walker as $node):
+        foreach ($breadthIterator as $node):
             $level = getNodeLevel($node);
             $indent = str_repeat("&nbsp;&nbsp;&nbsp;", $level);
         ?>
@@ -103,6 +103,29 @@ $walker = new DepthIterator($list);
             </li>
         <?php endforeach; ?>
     </ul>
+
+    <h2>🌿 DOM в глибину (DepthIterator):</h2>
+<ul style="font-family: monospace;">
+    <?php
+    $depthIterator->rewind(); 
+    while ($depthIterator->valid()):
+        $node = $depthIterator->current();
+        $level = getNodeLevel($node);
+        $indent = str_repeat("&nbsp;&nbsp;&nbsp;", $level);
+    ?>
+        <li>
+            <?= $indent ?>
+            <?php if ($node instanceof LightElementNode): ?>
+                📦 <code>&lt;<?= $node->getTagName() ?>&gt;</code>
+            <?php elseif ($node instanceof LightTextNode): ?>
+                📝 <em>"<?= htmlspecialchars($node->getText()) ?>"</em>
+            <?php endif; ?>
+        </li>
+    <?php
+        $depthIterator->next();
+    endwhile;
+    ?>
+</ul>
 
     <h2>📚 Тест getText() і getParent():</h2>
     <p>

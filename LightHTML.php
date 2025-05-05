@@ -199,4 +199,91 @@ class LightElementNode extends LightNode
         return "<{$this->tagName}{$attrStr}>{$this->innerHTML()}</{$this->tagName}>";
     }
 }
-?>
+
+class BreadthIterator implements Iterator
+{
+    private array $queue = [];
+    private int $index = 0;
+
+    public function __construct(LightNode $root)
+    {
+        $this->queue[] = $root;
+    }
+
+    public function current(): mixed
+    {
+        return $this->queue[$this->index];
+    }
+
+    public function next(): void
+    {
+        $node = $this->queue[$this->index++];
+
+        if ($node instanceof LightElementNode) {
+            foreach ($node->getChildren() as $child) {
+                $this->queue[] = $child;
+            }
+        }
+    }
+
+    public function key(): mixed
+    {
+        return $this->index;
+    }
+
+    public function valid(): bool
+    {
+        return isset($this->queue[$this->index]);
+    }
+
+    public function rewind(): void
+    {
+        $this->index = 0;
+    }
+}
+
+class DepthIterator implements Iterator
+{
+    private array $stack = [];
+    private mixed $current = null;
+
+    public function __construct(LightNode $root)
+    {
+        $this->stack[] = $root;
+    }
+
+    public function current(): mixed
+    {
+        return $this->current;
+    }
+
+    public function next(): void
+    {
+        $node = array_pop($this->stack);
+        $this->current = $node;
+
+        if ($node instanceof LightElementNode) {
+            $children = $node->getChildren();
+            for ($i = count($children) - 1; $i >= 0; $i--) {
+                $this->stack[] = $children[$i];
+            }
+        }
+    }
+
+    public function key(): mixed
+    {
+        return null;
+    }
+
+    public function valid(): bool
+    {
+        return !empty($this->stack);
+    }
+
+    public function rewind(): void
+    {
+        if (!empty($this->stack)) {
+            $this->next();
+        }
+    }
+}
