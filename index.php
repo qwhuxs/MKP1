@@ -7,6 +7,7 @@ require_once 'VisitorInterface.php';
 require_once 'CountVisitor.php';
 require_once 'DepthIterator.php';
 
+// Створення списку та елементів
 $list = new LightElementNode('ul', 'block', 'pair');
 $list->addClass('list');
 
@@ -24,6 +25,7 @@ $list->appendChild($item1);
 $list->appendChild($item2);
 $list->appendChild($item3);
 
+// Обробники подій
 $list->addHook('onCreated', function ($node) {
     echo "✔️ Список був створений.<br>";
 });
@@ -54,6 +56,23 @@ $visitor->visit($list);
 $counts = $visitor->getResults();
 
 $walker = new DepthIterator($list);
+
+// Стейт для елементів
+class ElementState {
+    private $state;
+    public function __construct($state = "inactive") {
+        $this->state = $state;
+    }
+    public function setState($state) {
+        $this->state = $state;
+    }
+    public function getState() {
+        return $this->state;
+    }
+}
+
+$itemState = new ElementState();
+
 ?>
 
 <!DOCTYPE html>
@@ -61,12 +80,12 @@ $walker = new DepthIterator($list);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LightHTML – Ітератор</title>
+    <title>LightHTML – Шаблон "Стейт"</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="container">
-    <h1>🧩 LightHTML – Шаблон "Ітератор"</h1>
+    <h1>🧩 LightHTML – Шаблон "Стейт"</h1>
 
     <h2>Фактичний HTML:</h2>
     <?= $list->outerHTML() ?>
@@ -92,6 +111,11 @@ $walker = new DepthIterator($list);
 
     <h2>➖ Видалити елемент:</h2>
     <a href="?remove=1"><button>Видалити другий пункт</button></a>
+
+    <h2>🔄 Змінити стан елемента:</h2>
+    <p>Текущий стан: <span id="state"><?= $itemState->getState() ?></span></p>
+    <button onclick="changeState()">Перемкнути стан</button>
+
 </div>
 
 <script>
@@ -101,6 +125,17 @@ $walker = new DepthIterator($list);
         const li = document.createElement('li');
         li.textContent = `Новий пункт ${counter++}`;
         ul.appendChild(li);
+    }
+
+    function changeState() {
+        const stateSpan = document.getElementById('state');
+        if (stateSpan.textContent === "inactive") {
+            stateSpan.textContent = "active";
+            stateSpan.style.color = "green";
+        } else {
+            stateSpan.textContent = "inactive";
+            stateSpan.style.color = "red";
+        }
     }
 </script>
 </body>
